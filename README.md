@@ -19,12 +19,6 @@ This project is a simple **Database Management System (DBMS)** built entirely us
 project-root/
 │
 ├── dbms.sh               # Main script file to run the system
-├── lib/                  # Contains functions for different operations
-│   ├── create_db.sh
-│   ├── create_table.sh
-│   ├── insert.sh
-│   ├── select.sh
-│   └── ...
 ├── databases/            # Folder where databases (directories) are stored
 │   └── sample_db/        # Each database is a folder with table files inside
 │       └── users         # Table file with schema and records
