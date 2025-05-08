@@ -1,29 +1,79 @@
 #!/bin/bash
+# Hide cursor
+tput civis
+
+#colors file
+source ./config/text.sh
+
+# ASCII art title
+title=(
+"${BLUE_BOLD}██████╗ ██████╗ ███╗   ███╗███████╗"
+"${BLUE_BOLD}██╔══██╗██╔══██╗████╗ ████║██╔════╝"
+"${BLUE_BOLD}██║  ██║██████╔╝██╔████╔██║███████╗"
+"${BLUE_BOLD}██║  ██║██╔══██╗██║╚██╔╝██║╚════██║"
+"${BLUE_BOLD}██████╔╝██████╔╝██║ ╚═╝ ██║███████║"
+"${BLUE_BOLD}╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝"
+"${CYAN_BOLD}        Welcome to the DBMS        "
+)
+
+# Author info
+author_info=(
+"${MAGENTA_BOLD}-----------------------------------------"
+" Author : Eman Zaki"
+" Role   : DevOps Engineer"
+" Project: Bash-based DBMS System"
+" GitHub : github.com/emanzaki"
+"-----------------------------------------${CLEAR}"
+)
+
+# Display title
+clear
+for line in "${title[@]}"; do
+    echo -e "$line"
+    sleep 0.2
+done
+
+# Pause
+sleep 0.5
+
+# Display author info
+for line in "${author_info[@]}"; do
+    echo -e "$line"
+    sleep 0.1
+done
+
+
+echo -e "${CLEAR}\n"
+tput cnorm
+source ./config/text.sh
 
 mkdir -p DBMS 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
-clear
-echo "Welcome to the Bash DBMS!"
-echo -e "\nAuthor"
-echo -e "\tEman Zaki\n"
 
 function main {
-	echo -e "--------------Menu--------------"
-	echo 	" 1- Select Database"
-	echo 	" 2- Create Database"
-	echo 	" 2- Drop Database"
-	echo 	" 4- Show Database"
-	echo 	" 5- Exit"
-	echo -e "--------------------------------"
-	echo -e "Enter Choice: \c"
+	menu=(
+	"${BLUE}-------------Menu--------------${CLEAR}"
+	" 1- Select Database"
+        " 2- Create Database"
+	" 2- Drop Database"                
+	" 4- Show Database"                
+	" 5- Exit"                         
+	"${BLUE}--------------------------------${CLEAR}"
+	"${BOLD}Enter Choice: \c ${CLEAR}"
+	)
+	#print menu
+	for line in "${menu[@]}"; do
+		echo -e "$line"
+		sleep 0.01
+	done
 	read n
 	case $n in
 		1) selectDB ;;
 		2) createDB ;;
-		2) dropDB ;;
+		3) dropDB ;;
 		4) showDB ;;
 		5) exit ;;
-		*) echo "Please select number from the Menu"
+		*) echo -e "${RED}Please select number from the Menu${CLEAR}"
 			main ;;
 	esac
 }
