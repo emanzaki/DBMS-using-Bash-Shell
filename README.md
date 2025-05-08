@@ -64,9 +64,16 @@ Example of a command-line interaction:
 
 ```
 Welcome to the Bash DBMS!
-1) Create Database
-2) Use Database
-3) Drop Database
+Author
+	Eman Zaki
+--------------Menu--------------
+ 1- Select Database
+ 2- Create Database
+ 2- Drop Database
+ 4- Show Database
+ 5- Exit
+--------------------------------
+Enter Choice: 
 ...
 ```
 
