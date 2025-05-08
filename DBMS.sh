@@ -3,17 +3,17 @@
 mkdir -p DBMS 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
 clear
-echo "Welcome to Database Management System"
+echo "Welcome to the Bash DBMS!"
 echo -e "\nAuthor"
-echo -e "\tEman Zaki"
+echo -e "\tEman Zaki\n"
 
 function main {
-	echo -e "\n--------------Menu--------------"
-	echo 	"| 1- Select Database           |"
-	echo 	"| 2- Create Database           |"
-	echo 	"| 2- Drop Database             |"
-	echo 	"| 4- Show Database             |"
-	echo 	"| 5- Exit                      |"
+	echo -e "--------------Menu--------------"
+	echo 	" 1- Select Database"
+	echo 	" 2- Create Database"
+	echo 	" 2- Drop Database"
+	echo 	" 4- Show Database"
+	echo 	" 5- Exit"
 	echo -e "--------------------------------"
 	echo -e "Enter Choice: \c"
 	read n
@@ -38,12 +38,12 @@ function selectDB {
 	fi
 	cd ./DBMS/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
-        	echo " --------$nameDB Database--------"
+        	echo "----------$nameDB Database---------"
         	#TODO: call the tables
 	else
         	echo "Database $nameDB not found"
-        fi
-	main
+        	main
+	fi
 }
 
 function createDB {
