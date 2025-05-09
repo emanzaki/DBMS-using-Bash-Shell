@@ -18,7 +18,7 @@ title=(
 
 # Author info
 author_info=(
-"${MAGENTA_BOLD}-----------------------------------------"
+"${CYAN_BOLD}-----------------------------------------"
 " Author : Eman Zaki"
 " Role   : DevOps Engineer"
 " Project: Bash-based DBMS System"
@@ -32,7 +32,6 @@ for line in "${title[@]}"; do
     echo -e "$line"
     sleep 0.2
 done
-
 # Pause
 sleep 0.5
 
@@ -42,8 +41,10 @@ for line in "${author_info[@]}"; do
     sleep 0.1
 done
 
-
 echo -e "${CLEAR}\n"
+
+echo -e "${BOLD}Press any key to continue${CLEAR}"
+read -rsn1 key
 tput cnorm
 source ./config/text.sh
 
@@ -51,31 +52,53 @@ mkdir -p DBMS 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
 
 function main {
-	menu=(
-	"${BLUE}-------------Menu--------------${CLEAR}"
-	" 1- Select Database"
-        " 2- Create Database"
-	" 2- Drop Database"                
-	" 4- Show Database"                
-	" 5- Exit"                         
-	"${BLUE}--------------------------------${CLEAR}"
-	"${BOLD}Enter Choice: \c ${CLEAR}"
-	)
-	#print menu
-	for line in "${menu[@]}"; do
-		echo -e "$line"
-		sleep 0.01
+		choice=0
+		menu=(
+		"1- Select Database"
+	        "2- Create Database"
+		"2- Drop Database"                
+		"4- Show Database"                
+		"5- Exit"                         
+		)
+	while true; do
+		clear
+		tput civis
+		echo -e "${BLUE}-------------Menu--------------${CLEAR}"
+		#print menu
+		for line in "${!menu[@]}"; do
+			if [[ $line == $choice ]]; then
+				echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
+			else
+				echo "${menu[$line]}"
+			fi
+		done
+		echo -e "${BLUE}--------------------------------${CLEAR}"
+		read -rsn1 action
+		if [[ $action == $'\x1b' ]]; then
+			read -rsn2 action	
+			case $action in
+				"[A")  # Up arrow
+		        	        ((choice--))
+                			[[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
+			                ;;
+        			"[B")  # Down arrow
+                			((choice++))
+                			[[ $choice -ge ${#menu[@]} ]] && choice=0
+                			;;
+			esac
+		elif [[ $action == "" ]]; then  # Enter pressed
+			((choice++))
+			case $choice in 
+				1) selectDB ;;
+				2) createDB ;;
+				3) dropDB ;;
+				4) showDB ;;
+				5) exit ;;
+			esac
+			break
+		fi
 	done
-	read n
-	case $n in
-		1) selectDB ;;
-		2) createDB ;;
-		3) dropDB ;;
-		4) showDB ;;
-		5) exit ;;
-		*) echo -e "${RED}Please select number from the Menu${CLEAR}"
-			main ;;
-	esac
+tput cnorm
 }
 
 function selectDB {
@@ -124,16 +147,16 @@ function dropDB {
 		dropDB
 		return
 	fi
-	echo "Are you sure you want to drop $nameDB Database? y/n"
-	read ans
-	case $ans in
-		[Yy])
-			deletingDB $nameDB
-			main	;;
-		[Nn]) main ;;
-		*) echo "Invalid input. Please enter only 'y' or 'n'." ;;
-	esac
-
+	while true; do
+		echo "Are you sure you want to drop $nameDB Database? y/n"
+		read -in1 ans
+		case $ans in
+			[Yy]) deleteDB $nameDB	;;
+			[Nn]) break ;;
+			*) echo "Invalid input. Please enter only 'y' or 'n'." ;;
+		esac
+	done
+	main
 }
 
 function showDB {
@@ -149,17 +172,17 @@ function showDB {
 	main		
 }
 
-function deletingDB {
+function deleteDB {
 	file=./DBMS/$1 
 	if [[ -f $file ]] ; then 	
 		rm -r $file 2>>./logs/.error.log
        		echo "$1 Deleted successfully"
+		read -n1 key
 	else 
 		echo "ERROR: Database doesn't exist"
+		read -n1 key
 	fi
 }
-
-
 
 
 
