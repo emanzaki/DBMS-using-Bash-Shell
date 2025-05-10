@@ -124,16 +124,18 @@ function createDB {
 	echo -e "Database Name: \c"
 	read nameDB
 	if [[ ${#nameDB} -lt 2 ]]; then
-		echo "Database name must be at least 2 characters."
+		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		createDB
 		return
 	fi
 	mkdir ./dbms/$nameDB 2>>./logs/.error.log
 	if [[ $? == 0 ]] ; then
-		echo "Database Created Successfully"
+		echo -e "${GREEN}Database Created Successfully.${CLEAR}"
+		sleep 1
 		#TODO: add the menu to the tables 
 	else
-		echo "Error happend while creating your Database"
+		echo -e "${RED}Error happend while creating your Database${CLEAR}"
+		sleep 2
 	fi
 	main
 
@@ -155,7 +157,7 @@ function dropDB {
 			[Yy]) deleteDB $nameDB
 				break	;;
 			[Nn]) break ;;
-			*) echo "Invalid input. Please enter only 'y' or 'n'." ;;
+			*) echo -e "${RED}Invalid input. Please enter only 'y' or 'n'.${CLEAR}" ;;
 		esac
 	done
 	main
@@ -171,22 +173,21 @@ function showDB {
 		((x++))
 	done
 	echo "-----------------------------"
+	echo -e "${BOLD}Press any key to go back to the main menu..${CLEAR}"
 	read -rsn1 key
 	main		
 }
 
 function deleteDB {
 	file=./dbms/$1 
-	if [[ -f $file ]] ; then 	
+	if [[ -d $file ]] ; then 	
 		rm -r $file 2>>./logs/.error.log
-       		echo "$1 Deleted successfully"
-		read -n1 key
+       		echo -e "${GREEN}$1 Database Deleted successfully${CLEAR}"
 	else 
-		echo "ERROR: Database doesn't exist"
-		read -n1 key
+		echo -e  "${RED}ERROR: Database doesn't exist${CLEAR}"
 	fi
+
+		read -n1 key
 }
-
-
 
 main
