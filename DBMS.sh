@@ -4,7 +4,7 @@ tput civis
 
 #colors file
 source ./config/text.sh
-
+flag=false
 # ASCII art title
 title=(
 "${BLUE_BOLD}██████╗ ██████╗ ███╗   ███╗███████╗"
@@ -55,8 +55,8 @@ function main {
 		choice=0
 		menu=(
 		"1- Select Database"
-	        "2- Create Database"
-		"2- Drop Database"                
+		"2- Create Database"
+		"3- Drop Database"                
 		"4- Show Database"                
 		"5- Exit"                         
 		)
@@ -73,27 +73,27 @@ function main {
 			fi
 		done
 		echo -e "${BLUE}--------------------------------${CLEAR}"
+		echo -e "${BLUE}Use ↑ ↓ to navigate, Enter to select${CLEAR}"
 		read -rsn1 action
 		if [[ $action == $'\x1b' ]]; then
 			read -rsn2 action	
 			case $action in
 				"[A")  # Up arrow
-		        	        ((choice--))
-                			[[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
-			                ;;
-        			"[B")  # Down arrow
-                			((choice++))
-                			[[ $choice -ge ${#menu[@]} ]] && choice=0
-                			;;
+					((choice--))
+          			[[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
+			    	;;
+		        "[B")  # Down arrow
+          			((choice++))
+          			[[ $choice -ge ${#menu[@]} ]] && choice=0
+          			;;
 			esac
 		elif [[ $action == "" ]]; then  # Enter pressed
-			((choice++))
 			case $choice in 
-				1) selectDB ;;
-				2) createDB ;;
-				3) dropDB ;;
-				4) showDB ;;
-				5) exit ;;
+				0) selectDB ;;
+				1) createDB ;;
+				2) dropDB ;;
+				3) showDB ;;
+				4) exit ;;
 			esac
 			break
 		fi
@@ -105,7 +105,7 @@ function selectDB {
 	echo -e "Database Name: \c"
 	read nameDB
 	if [[ ${#nameDB} -lt 2 ]]; then
-		echo "Database name must be at least 2 characters."
+		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		selectDB
 		return
 	fi
@@ -114,7 +114,8 @@ function selectDB {
         	echo "----------$nameDB Database---------"
         	#TODO: call the tables
 	else
-        	echo "Database $nameDB not found"
+        	echo -e "${RED}Database $nameDB not found${CLEAR}"
+			sleep 3
         	main
 	fi
 }
@@ -151,7 +152,8 @@ function dropDB {
 		echo "Are you sure you want to drop $nameDB Database? y/n"
 		read -in1 ans
 		case $ans in
-			[Yy]) deleteDB $nameDB	;;
+			[Yy]) deleteDB $nameDB
+				break	;;
 			[Nn]) break ;;
 			*) echo "Invalid input. Please enter only 'y' or 'n'." ;;
 		esac
@@ -169,6 +171,7 @@ function showDB {
 		((x++))
 	done
 	echo "-----------------------------"
+	read -rsn1 key
 	main		
 }
 
