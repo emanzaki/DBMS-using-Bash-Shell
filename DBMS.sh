@@ -7,23 +7,23 @@ source ./config/text.sh
 flag=false
 # ASCII art title
 title=(
-"${BLUE_BOLD}██████╗ ██████╗ ███╗   ███╗███████╗"
-"${BLUE_BOLD}██╔══██╗██╔══██╗████╗ ████║██╔════╝"
-"${BLUE_BOLD}██║  ██║██████╔╝██╔████╔██║███████╗"
-"${BLUE_BOLD}██║  ██║██╔══██╗██║╚██╔╝██║╚════██║"
-"${BLUE_BOLD}██████╔╝██████╔╝██║ ╚═╝ ██║███████║"
-"${BLUE_BOLD}╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝"
-"${CYAN_BOLD}        Welcome to the DBMS        "
+"\n${BLUE_BOLD}		██████╗ ██████╗ ███╗   ███╗███████╗"
+"${BLUE_BOLD}		██╔══██╗██╔══██╗████╗ ████║██╔════╝"
+"${BLUE_BOLD}		██║  ██║██████╔╝██╔████╔██║███████╗"
+"${BLUE_BOLD}		██║  ██║██╔══██╗██║╚██╔╝██║╚════██║"
+"${BLUE_BOLD}		██████╔╝██████╔╝██║ ╚═╝ ██║███████║"
+"${BLUE_BOLD}		╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝"
+"${CYAN_BOLD}        		Welcome to the DBMS        "
 )
 
 # Author info
 author_info=(
-"${CYAN_BOLD}-----------------------------------------"
-" Author : Eman Zaki"
-" Role   : DevOps Engineer"
-" Project: Bash-based DBMS System"
-" GitHub : github.com/emanzaki"
-"-----------------------------------------${CLEAR}"
+"		${CYAN_BOLD}-----------------------------------------"
+"			Author : Eman Zaki"
+"			Role   : DevOps Engineer"
+"			Project: Bash-based DBMS System"
+"			GitHub : github.com/emanzaki"
+"		-----------------------------------------${CLEAR}"
 )
 
 # Display title
@@ -48,7 +48,7 @@ read -rsn1 key
 tput cnorm
 source ./config/text.sh
 
-mkdir -p DBMS 2>> ./.error.log
+mkdir -p dbms 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
 
 function main {
@@ -109,7 +109,7 @@ function selectDB {
 		selectDB
 		return
 	fi
-	cd ./DBMS/$nameDB 2>> ./logs/.error.log
+	cd ./dbms/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
         	echo "----------$nameDB Database---------"
         	#TODO: call the tables
@@ -128,7 +128,7 @@ function createDB {
 		createDB
 		return
 	fi
-	mkdir ./DBMS/$nameDB 2>>./logs/.error.log
+	mkdir ./dbms/$nameDB 2>>./logs/.error.log
 	if [[ $? == 0 ]] ; then
 		echo "Database Created Successfully"
 		#TODO: add the menu to the tables 
@@ -162,7 +162,7 @@ function dropDB {
 }
 
 function showDB {
-	arrDB=$(ls ./DBMS)
+	arrDB=$(ls ./dbms)
 	x=1
 	echo "-----------DATABASES---------"
 	for db in $arrDB
@@ -176,7 +176,7 @@ function showDB {
 }
 
 function deleteDB {
-	file=./DBMS/$1 
+	file=./dbms/$1 
 	if [[ -f $file ]] ; then 	
 		rm -r $file 2>>./logs/.error.log
        		echo "$1 Deleted successfully"
