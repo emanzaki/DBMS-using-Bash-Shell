@@ -26,6 +26,29 @@ author_info=(
 "		-----------------------------------------${CLEAR}"
 )
 
+#Database menu
+mainMenu=(
+"1- Select Database"
+"2- Create Database"
+"3- Drop Database"
+"4- Show Database"
+"5- Exit"
+)
+
+#tables menu
+tableMenu=(
+"1- Show Existing Tables"
+"2- Create New Table"
+"3- Insert Into Table"
+"4- Select From Table"
+"5- Update Table"
+"6- Delete From Table"
+"7- Drop Table"
+"8- Back to Main Menu"
+"9- Exit"
+)
+
+
 # Display title
 clear
 for line in "${title[@]}"; do
@@ -52,53 +75,18 @@ mkdir -p dbms 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
 
 function main {
-		choice=0
-		menu=(
-		"1- Select Database"
-		"2- Create Database"
-		"3- Drop Database"                
-		"4- Show Database"                
-		"5- Exit"                         
-		)
-	while true; do
-		clear
-		tput civis
-		echo -e "${BLUE}-------------Menu--------------${CLEAR}"
-		#print menu
-		for line in "${!menu[@]}"; do
-			if [[ $line == $choice ]]; then
-				echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
-			else
-				echo "${menu[$line]}"
-			fi
-		done
-		echo -e "${BLUE}--------------------------------${CLEAR}"
-		echo -e "${BLUE}Use ↑ ↓ to navigate, Enter to select${CLEAR}"
-		read -rsn1 action
-		if [[ $action == $'\x1b' ]]; then
-			read -rsn2 action	
-			case $action in
-				"[A")  # Up arrow
-					((choice--))
-          			[[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
-			    	;;
-		        "[B")  # Down arrow
-          			((choice++))
-          			[[ $choice -ge ${#menu[@]} ]] && choice=0
-          			;;
-			esac
-		elif [[ $action == "" ]]; then  # Enter pressed
-			case $choice in 
-				0) selectDB ;;
-				1) createDB ;;
-				2) dropDB ;;
-				3) showDB ;;
-				4) exit ;;
-			esac
-			break
-		fi
-	done
-tput cnorm
+	tput civis
+	displayMenu mainMenu
+	choice=$?
+	case $choice in 
+		0) selectDB ;;
+		1) createDB ;;
+		2) dropDB ;;
+		3) showDB ;;
+		4) exit ;;
+		*) echo -e "${RED}Error occurred${CLEAR}"
+	esac	
+	tput cnorm
 }
 
 function selectDB {
@@ -112,7 +100,7 @@ function selectDB {
 	cd ./dbms/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
         	echo "----------$nameDB Database---------"
-        	#TODO: call the tables
+        	tableMenu
 	else
         	echo -e "${RED}Database $nameDB not found${CLEAR}"
 			sleep 3
@@ -190,4 +178,85 @@ function deleteDB {
 		read -n1 key
 }
 
+
+function tableMenu {
+
+	tput civis
+	displayMenu tableMenu
+	choice=$?
+	case $choice in 
+		0) showTables ;;
+		1) createTable ;;
+		2) insertIntoTable ;;
+		3) selectFromTable ;;
+		4) updateTable ;;
+		5) deleteFromTable ;;
+		6) dropTable ;;
+		7) main ;;
+		8) exit ;;
+		*) echo -e "${RED}Error occurred${CLEAR}"
+	esac	
+	tput cnorm
+
+}
+
+function showTables {
+	tables=$(ls .)
+	echo "-----------------"
+	for table in $tables; do
+		echo "$table"
+	done
+	echo "-----------------"
+}
+
+function createTable {
+	echo -e "Table Name: \c"
+	read tableName
+	if [[ $tableName -lt 2 ]]; then
+		echo -e "${RED}Table name must be at least 3 characters"
+	elif [[ -f $tableName ]]; then
+		echo -e "${RED}Table already exist, Please choose another name${CLEAR}"
+		tableMenu
+	fi
+	echo -e "Number of Columns:"
+	read num
+	
+	}
+function displayMenu {
+	local choice=0
+	local menuName=$1
+	local -n menu=$menuName #reference to menu array
+	while true; do
+        clear
+        tput civis
+        echo -e "${BLUE}-------------Menu--------------${CLEAR}"
+        #print menu
+        for line in "${!menu[@]}"; do
+            if [[ $line == $choice ]]; then
+                echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
+            else
+                echo "${menu[$line]}"
+            fi
+        done
+        echo -e "${BLUE}--------------------------------${CLEAR}"
+        echo -e "${BLUE}Use ↑ ↓ to navigate, Enter to select${CLEAR}"
+        read -rsn1 action
+        if [[ $action == $'\x1b' ]]; then
+            read -rsn2 action
+            case $action in
+                "[A")  # Up arrow
+                    ((choice--))
+                    [[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
+                    ;;
+                "[B")  # Down arrow
+                    ((choice++))
+                    [[ $choice -ge ${#menu[@]} ]] && choice=0
+                    ;;
+            esac
+        elif [[ $action == "" ]]; then  # Enter pressed
+			return $choice
+        fi
+    done
+
+	}
 main
