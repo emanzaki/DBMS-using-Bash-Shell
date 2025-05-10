@@ -48,12 +48,24 @@ tableMenu=(
 "9- Exit"
 )
 
+#Datatype
+typesMenu=(
+"int"
+"string"
+"bool"
+)
+
+#IsPK
+pKeyMenu=(
+"yes"
+"no"
+)
 
 # Display title
 clear
 for line in "${title[@]}"; do
     echo -e "$line"
-    sleep 0.2
+    sleep 0.1
 done
 # Pause
 sleep 0.5
@@ -99,12 +111,10 @@ function selectDB {
 	fi
 	cd ./dbms/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
-        	echo "----------$nameDB Database---------"
         	tableMenu
 	else
         	echo -e "${RED}Database $nameDB not found${CLEAR}"
-			sleep 3
-        	main
+			returnToMainMenu main
 	fi
 }
 
@@ -115,12 +125,22 @@ function createDB {
 		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		createDB
 		return
+	elif [[ -d ./dbms/$nameDB ]]; then
+		echo -e "${RED}Database already exists.${CLEAR}"
+		createDB
+		return
 	fi
 	mkdir ./dbms/$nameDB 2>>./logs/.error.log
 	if [[ $? == 0 ]] ; then
 		echo -e "${GREEN}Database Created Successfully.${CLEAR}"
 		sleep 1
-		#TODO: add the menu to the tables 
+		#TODO: add the menu to the tables
+		cd ./dbms/$nameDB 2>>./logs/.error.log
+		if [[ $? == 0 ]]; then
+			tableMenu
+		else
+			echo -e "${RED}Error occurred selecting the $nameDB Database${CLEAR}"
+		fi
 	else
 		echo -e "${RED}Error happend while creating your Database${CLEAR}"
 		sleep 2
@@ -161,9 +181,7 @@ function showDB {
 		((x++))
 	done
 	echo "-----------------------------"
-	echo -e "${BOLD}Press any key to go back to the main menu..${CLEAR}"
-	read -rsn1 key
-	main		
+	returnToMainMenu main
 }
 
 function deleteDB {
@@ -207,20 +225,61 @@ function showTables {
 		echo "$table"
 	done
 	echo "-----------------"
+	returnToMainMenu tableMenu
 }
 
 function createTable {
 	echo -e "Table Name: \c"
 	read tableName
-	if [[ $tableName -lt 2 ]]; then
-		echo -e "${RED}Table name must be at least 3 characters"
+	if [[ ${#tableName} -lt 2 ]]; then
+		echo -e "${RED}Table name must be at least 2 characters${CLEAR}"
+		createTable
 	elif [[ -f $tableName ]]; then
-		echo -e "${RED}Table already exist, Please choose another name${CLEAR}"
-		tableMenu
+		echo -e "${RED}Table already exist.${CLEAR}"
+		returnToMainMenu tableMenu
 	fi
-	echo -e "Number of Columns:"
-	read num
-	
+	echo -e "Number of Columns:\c"
+	read numCols
+	if ! [[ $numCols =~ ^[0-9]+$ ]] || [[ $numCols -lt 1 ]]; then
+		echo -e "${RED}Number of columns must be a positive number${CLEAR}"
+		returnToMainMenu tableMenu
+	fi
+	echo "Column Name|Column Type|Primary Key" > $tableName 2>>../../logs/.error.log
+	pkCount=1
+	for ((i=1; i<=numCols; i++)); do
+		pKey=""
+		echo -e "Column $i Name: \c"
+		read colName
+		if [[ ${#colName} -lt 2 ]]; then
+			echo -e "${RED}Column name must be at least 2 characters${CLEAR}"
+			createTable
+		fi
+		echo "Choose column type"
+		displayMenu typesMenu
+		colType=$?
+		case $colType in
+			0) colType="int" ;;
+			1) colType="string" ;;
+			2) colType="bool" ;;
+			*) echo -e "${RED}Error occurred${CLEAR}" ;;
+		esac
+		if [[ $pkCount -eq 1 ]]; then
+			echo "Is this column a primary key?"
+			displayMenu pKeyMenu
+			isPK=$?
+			case $isPK in
+				0)
+				pKey="yes"
+				pkCount=0
+				;;
+				1) pKey="" ;;
+				*) echo -e "${RED}Error occurred${CLEAR}" ;;
+			esac
+		fi
+		echo "$colName|$colType|$pKey" >> $tableName 2>>../../logs/.error.log
+	done
+	echo -e "${GREEN} $tableName Table created successfully${CLEAR}"
+	returnToMainMenu tableMenu
 	}
 function displayMenu {
 	local choice=0
@@ -259,4 +318,11 @@ function displayMenu {
     done
 
 	}
+
+function returnToMainMenu {
+	local menuName=$1
+	echo -e "${BOLD}Press any key to go back to the previous menu..${CLEAR}"
+	read -rsn1 key
+	"$menuName"
+}
 main
