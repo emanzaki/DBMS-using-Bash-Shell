@@ -28,6 +28,7 @@ author_info=(
 
 #Database menu
 mainMenu=(
+"------------------Main Menu------------------"
 "1- Select Database"
 "2- Create Database"
 "3- Drop Database"
@@ -37,6 +38,7 @@ mainMenu=(
 
 #tables menu
 tableMenu=(
+"------------------Tables Menu------------------"
 "1- Show Existing Tables"
 "2- Create New Table"
 "3- Insert Into Table"
@@ -50,6 +52,7 @@ tableMenu=(
 
 #Datatype
 typesMenu=(
+"------------Choose column type--------------"
 "int"
 "string"
 "bool"
@@ -57,6 +60,7 @@ typesMenu=(
 
 #IsPK
 pKeyMenu=(
+"--------Is this column a Primary Key?--------"
 "yes"
 "no"
 )
@@ -107,15 +111,14 @@ function selectDB {
 	if [[ ${#nameDB} -lt 2 ]]; then
 		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		selectDB
-		return
 	fi
 	cd ./dbms/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
         	tableMenu
 	else
         	echo -e "${RED}Database $nameDB not found${CLEAR}"
-			returnToMainMenu main
 	fi
+	returnToMainMenu main
 }
 
 function createDB {
@@ -124,17 +127,14 @@ function createDB {
 	if [[ ${#nameDB} -lt 2 ]]; then
 		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		createDB
-		return
 	elif [[ -d ./dbms/$nameDB ]]; then
 		echo -e "${RED}Database already exists.${CLEAR}"
 		createDB
-		return
 	fi
 	mkdir ./dbms/$nameDB 2>>./logs/.error.log
 	if [[ $? == 0 ]] ; then
 		echo -e "${GREEN}Database Created Successfully.${CLEAR}"
 		sleep 1
-		#TODO: add the menu to the tables
 		cd ./dbms/$nameDB 2>>./logs/.error.log
 		if [[ $? == 0 ]]; then
 			tableMenu
@@ -143,9 +143,8 @@ function createDB {
 		fi
 	else
 		echo -e "${RED}Error happend while creating your Database${CLEAR}"
-		sleep 2
 	fi
-	main
+	returnToMainMenu main
 
 }
 
@@ -264,7 +263,6 @@ function createTable {
 			*) echo -e "${RED}Error occurred${CLEAR}" ;;
 		esac
 		if [[ $pkCount -eq 1 ]]; then
-			echo "Is this column a primary key?"
 			displayMenu pKeyMenu
 			isPK=$?
 			case $isPK in
@@ -282,20 +280,22 @@ function createTable {
 	returnToMainMenu tableMenu
 	}
 function displayMenu {
-	local choice=0
+	local choice=1
 	local menuName=$1
 	local -n menu=$menuName #reference to menu array
 	while true; do
         clear
         tput civis
-        echo -e "${BLUE}-------------Menu--------------${CLEAR}"
         #print menu
-        for line in "${!menu[@]}"; do
-            if [[ $line == $choice ]]; then
-                echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
-            else
-                echo "${menu[$line]}"
-            fi
+		echo -e "${BOLD}${menu[0]}${CLEAR}"
+		#fix the next line 
+
+        for ((line=1; line<= ${#menu[@]}; line++)); do
+			if [[ $line == $choice ]]; then
+				echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
+			else
+				echo "${menu[$line]}"
+			fi
         done
         echo -e "${BLUE}--------------------------------${CLEAR}"
         echo -e "${BLUE}Use ↑ ↓ to navigate, Enter to select${CLEAR}"
@@ -305,15 +305,15 @@ function displayMenu {
             case $action in
                 "[A")  # Up arrow
                     ((choice--))
-                    [[ $choice -lt 0 ]] && choice=$((${#menu[@]} - 1))
+                    [[ $choice -lt 1 ]] && choice=$((${#menu[@]} - 1))
                     ;;
                 "[B")  # Down arrow
                     ((choice++))
-                    [[ $choice -ge ${#menu[@]} ]] && choice=0
+                    [[ $choice -ge ${#menu[@]} ]] && choice=1
                     ;;
             esac
         elif [[ $action == "" ]]; then  # Enter pressed
-			return $choice
+			return $((choice - 1))
         fi
     done
 
