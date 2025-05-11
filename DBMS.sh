@@ -92,7 +92,7 @@ read -rsn1 key
 tput cnorm
 source ./config/text.sh
 
-mkdir -p dbms 2>> ./.error.log
+mkdir -p databases 2>> ./.error.log
 mkdir -p logs 2>> ./.error.log
 
 function main {
@@ -117,7 +117,7 @@ function selectDB {
 		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		selectDB
 	fi
-	cd ./dbms/$nameDB 2>> ./logs/.error.log
+	cd ./databases/$nameDB 2>> ./logs/.error.log
 	if [[ $? == 0 ]]; then
         	tableMenu
 	else
@@ -132,15 +132,15 @@ function createDB {
 	if [[ ${#nameDB} -lt 2 ]]; then
 		echo -e "${RED}Database name must be at least 2 characters.${CLEAR}"
 		createDB
-	elif [[ -d ./dbms/$nameDB ]]; then
+	elif [[ -d ./databases/$nameDB ]]; then
 		echo -e "${RED}Database already exists.${CLEAR}"
 		createDB
 	fi
-	mkdir ./dbms/$nameDB 2>>./logs/.error.log
+	mkdir ./databases/$nameDB 2>>./logs/.error.log
 	if [[ $? == 0 ]] ; then
 		echo -e "${GREEN}Database Created Successfully.${CLEAR}"
 		sleep 1
-		cd ./dbms/$nameDB 2>>./logs/.error.log
+		cd ./databases/$nameDB 2>>./logs/.error.log
 		if [[ $? == 0 ]]; then
 			tableMenu
 		else
@@ -176,7 +176,7 @@ function dropDB {
 }
 
 function showDB {
-	arrDB=$(ls ./dbms)
+	arrDB=$(ls ./databases)
 	x=1
 	echo "-----------DATABASES---------"
 	for db in $arrDB
@@ -189,7 +189,7 @@ function showDB {
 }
 
 function deleteDB {
-	file=./dbms/$1 
+	file=./databases/$1 
 	if [[ -d $file ]] ; then 	
 		rm -r $file 2>>./logs/.error.log
        		echo -e "${GREEN}$1 Database Deleted successfully${CLEAR}"
