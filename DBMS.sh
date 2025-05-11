@@ -43,11 +43,10 @@ tableMenu=(
 "2- Create New Table"
 "3- Insert Into Table"
 "4- Select From Table"
-"5- Update Table"
-"6- Delete From Table"
-"7- Drop Table"
-"8- Back to Main Menu"
-"9- Exit"
+"5- Delete From Table"
+"6- Drop Table"
+"7- Back to Main Menu"
+"8- Exit"
 )
 
 #Datatype
@@ -210,13 +209,12 @@ function tableMenu {
 		1) createTable ;;
 		2) insertIntoTable ;;
 		3) selectFromTable ;;
-		4) updateTable ;;
-		5) deleteFromTable ;;
-		6) dropTable ;;
-		7) cd ../.. 2>>../../logs/.error.log
+		4) deleteFromTable ;;
+		5) dropTable ;;
+		6) cd ../.. 2>>../../logs/.error.log
 			main
 			;;
-		8) exit ;;
+		7) exit ;;
 		*) echo -e "${RED}Error occurred${CLEAR}"
 	esac	
 	tput cnorm
@@ -430,6 +428,28 @@ function selectSpecificColumn {
 	cut -d '|' -f $colNum $tableName 2>>../../logs/.error.log
 	echo "-----------------"
 }
+
+function deleteFromTable {
+	echo -e "Table Name: \c"
+	read tableName
+	if [[ ! -f $tableName ]]; then
+		echo -e "${RED}Table doesn't exist.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
+	tableData=(
+		"---------------$tableName Table---------------"
+		)
+	
+	tableData+=($(tail -n +2 $tableName 2>>../../logs/.error.log))
+	displayMenu tableData
+	rowNum=$?
+	rowNum=$((rowNum + 1)) # Adjust for header
+	sed -i "${rowNum}d" $tableName 2>>../../logs/.error.log
+
+	echo -e "${GREEN}Row deleted successfully.${CLEAR}"
+	returnToPreviousMenu tableMenu
+}
+
 function displayMenu {
 	local choice=1
 	local menuName=$1
