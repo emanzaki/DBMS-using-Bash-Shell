@@ -65,6 +65,12 @@ pKeyMenu=(
 "no"
 )
 
+selectTableMenu=(
+"------------------Select Table------------------"
+"1- Select All"
+"2- Select Specific Column"
+)
+
 # Display title
 clear
 for line in "${title[@]}"; do
@@ -377,6 +383,53 @@ function insertIntoTable {
 	returnToPreviousMenu tableMenu
 }
 
+
+function selectFromTable {
+	echo -e "Table Name: \c"
+	read tableName
+	if [[ ! -f $tableName ]]; then
+		echo -e "${RED}Table doesn't exist.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
+
+	displayMenu selectTableMenu
+	choice=$?
+	case $choice in
+		0) selectAll $tableName;;
+		1) selectSpecificColumn $tableName ;;
+	esac
+	returnToPreviousMenu tableMenu
+}
+function selectAll {
+	local tableName=$1
+	echo "-----------------"
+	cat $tableName 2>>../../logs/.error.log
+	echo "-----------------"
+}
+function selectSpecificColumn {
+	local tableName=$1
+	# Extract metadata
+	numCols=$(( 1 + $(head -n 1 ".$tableName" | grep -o "|" | wc -l) ))
+	colNames=
+	echo "Choose a column to select:"
+	for ((j=1; j<numCols; j++)); do
+		metaLine=$(sed -n "$((j + 1))p" ".$tableName")
+		colNames[$j]=$(echo "$metaLine" | cut -d '|' -f 1)
+		echo "$j) ${colNames[$j]}"
+	done
+
+	echo -e "Column Number: \c"
+	read colNum
+
+	if [[ $colNum -lt 1 || $colNum -ge $numCols ]]; then
+		echo -e "${RED}Invalid column number.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
+
+	echo "-----------------"
+	cut -d '|' -f $colNum $tableName 2>>../../logs/.error.log
+	echo "-----------------"
+}
 function displayMenu {
 	local choice=1
 	local menuName=$1
