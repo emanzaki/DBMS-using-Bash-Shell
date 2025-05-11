@@ -118,7 +118,7 @@ function selectDB {
 	else
         	echo -e "${RED}Database $nameDB not found${CLEAR}"
 	fi
-	returnToMainMenu main
+	returnToPreviousMenu main
 }
 
 function createDB {
@@ -144,7 +144,7 @@ function createDB {
 	else
 		echo -e "${RED}Error happend while creating your Database${CLEAR}"
 	fi
-	returnToMainMenu main
+	returnToPreviousMenu main
 
 }
 
@@ -167,7 +167,7 @@ function dropDB {
 			*) echo -e "${RED}Invalid input. Please enter only 'y' or 'n'.${CLEAR}" ;;
 		esac
 	done
-	main
+	returnToPreviousMenu main
 }
 
 function showDB {
@@ -180,7 +180,7 @@ function showDB {
 		((x++))
 	done
 	echo "-----------------------------"
-	returnToMainMenu main
+	returnToPreviousMenu main
 }
 
 function deleteDB {
@@ -191,8 +191,6 @@ function deleteDB {
 	else 
 		echo -e  "${RED}ERROR: Database doesn't exist${CLEAR}"
 	fi
-
-		read -n1 key
 }
 
 
@@ -209,12 +207,13 @@ function tableMenu {
 		4) updateTable ;;
 		5) deleteFromTable ;;
 		6) dropTable ;;
-		7) main ;;
+		7) cd ../.. 2>>../../logs/.error.log
+			main
+			;;
 		8) exit ;;
 		*) echo -e "${RED}Error occurred${CLEAR}"
 	esac	
 	tput cnorm
-
 }
 
 function showTables {
@@ -224,7 +223,7 @@ function showTables {
 		echo "$table"
 	done
 	echo "-----------------"
-	returnToMainMenu tableMenu
+	returnToPreviousMenu tableMenu
 }
 
 function createTable {
@@ -235,15 +234,15 @@ function createTable {
 		createTable
 	elif [[ -f $tableName ]]; then
 		echo -e "${RED}Table already exist.${CLEAR}"
-		returnToMainMenu tableMenu
+		returnToPreviousMenu tableMenu
 	fi
 	echo -e "Number of Columns:\c"
 	read numCols
 	if ! [[ $numCols =~ ^[0-9]+$ ]] || [[ $numCols -lt 1 ]]; then
 		echo -e "${RED}Number of columns must be a positive number${CLEAR}"
-		returnToMainMenu tableMenu
+		returnToPreviousMenu tableMenu
 	fi
-	echo "Column Name|Column Type|Primary Key" > $tableName 2>>../../logs/.error.log
+	echo "Column_Name|Column_Type|Primary_Key" > .$tableName 2>>../../logs/.error.log
 	pkCount=1
 	for ((i=1; i<=numCols; i++)); do
 		pKey=""
@@ -274,11 +273,107 @@ function createTable {
 				*) echo -e "${RED}Error occurred${CLEAR}" ;;
 			esac
 		fi
-		echo "$colName|$colType|$pKey" >> $tableName 2>>../../logs/.error.log
+		echo "$colName|$colType|$pKey" >> .$tableName 2>>../../logs/.error.log
+		if [[ $i != $numCols ]]; then
+			echo -n "$colName|" >> $tableName 2>>../../logs/.error.log
+		else
+			echo -ne "$colName\n" >> $tableName 2>>../../logs/.error.log
+		fi
 	done
+	if [[ $? != 0 ]]; then
+		echo -e "${RED}Error occurred while creating the table${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
 	echo -e "${GREEN} $tableName Table created successfully${CLEAR}"
-	returnToMainMenu tableMenu
+	returnToPreviousMenu tableMenu
 	}
+function insertIntoTable {
+	echo -e "Table Name: \c"
+	read tableName
+	
+	if [[ ! -f $tableName ]]; then
+		echo -e "${RED}Table doesn't exist.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
+
+	# Extract metadata
+	numCols=$(( 1 + $(head -n 1 ".$tableName" | grep -o "|" | wc -l) ))
+
+	for ((j=1; j<numCols; j++)); do
+		metaLine=$(sed -n "$((j + 1))p" ".$tableName")
+		colNames[$j]=$(echo "$metaLine" | cut -d '|' -f 1)
+		colTypes[$j]=$(echo "$metaLine" | cut -d '|' -f 2)
+		pKeys[$j]=$(echo "$metaLine" | cut -d '|' -f 3)
+		[[ -z ${pKeys[$j]} ]] && pKeys[$j]="no"
+	done
+
+	echo -e "Number of Rows: \c"
+	read numRows
+
+	for ((i=1; i<=numRows; i++)); do
+		newRow=""
+		rowValid=true
+		for ((j=1; j<numCols; j++)); do
+			echo -e "${BOLD}Column $j: ${colNames[$j]} (${colTypes[$j]})${CLEAR}"
+			echo -e "${BOLD}Is this column a Primary Key? ${pKeys[$j]}${CLEAR}"
+			echo -e "Row $i, Column ${colNames[$j]}: \c"
+			read cellValue
+
+			# Handle empty input
+			if [[ -z $cellValue ]]; then
+				if [[ ${pKeys[$j]} == "yes" ]]; then
+					echo -e "${RED}Primary key cannot be empty.${CLEAR}"
+					rowValid=false
+					break
+				else
+					cellValue="null"
+				fi
+			fi
+
+			# Validate type
+			if [[ ${colTypes[$j]} == "int" ]]; then
+				if ! [[ $cellValue =~ ^[0-9]+$ ]]; then
+					echo -e "${RED}Invalid input. Please enter an integer.${CLEAR}"
+					rowValid=false
+					break
+				fi
+			elif [[ ${colTypes[$j]} == "bool" ]]; then
+				if ! [[ $cellValue =~ ^(true|false)$ ]]; then
+					echo -e "${RED}Invalid input. Please enter 'true' or 'false'.${CLEAR}"
+					rowValid=false
+					break
+				fi
+			fi
+
+			# Validate primary key uniqueness
+			if [[ ${pKeys[$j]} == "yes" ]]; then
+				existingPK=$(awk -F'|' -v col=$j '{print $col}' "$tableName" | grep -w "$cellValue")
+				if [[ -n $existingPK ]]; then
+					echo -e "${RED}Primary key already exists in the table.${CLEAR}"
+					rowValid=false
+					break
+				fi
+			fi
+
+			# Append to row string
+			if [[ $j -lt $(($numCols - 1)) ]]; then
+				newRow+="$cellValue|"
+			else
+				newRow+="$cellValue"
+			fi
+		done
+
+		# Only append if loop wasn't broken (valid row)
+		if [[ $rowValid == true ]]; then
+			echo -e "$newRow" >> "$tableName" 2>>../../logs/.error.log
+		else
+			echo -e "${YELLOW}Row $i rejected. Please re-enter.${CLEAR}"
+			((i--))
+		fi
+	done
+	returnToPreviousMenu tableMenu
+}
+
 function displayMenu {
 	local choice=1
 	local menuName=$1
@@ -287,9 +382,7 @@ function displayMenu {
         clear
         tput civis
         #print menu
-		echo -e "${BOLD}${menu[0]}${CLEAR}"
-		#fix the next line 
-
+		echo -e "${BOLD}${menu[0]}${CLEAR}" #print menu title
         for ((line=1; line<= ${#menu[@]}; line++)); do
 			if [[ $line == $choice ]]; then
 				echo -e "${GREEN}> ${menu[$line]} ${CLEAR}" # highlight choice
@@ -319,7 +412,7 @@ function displayMenu {
 
 	}
 
-function returnToMainMenu {
+function returnToPreviousMenu {
 	local menuName=$1
 	echo -e "${BOLD}Press any key to go back to the previous menu..${CLEAR}"
 	read -rsn1 key
