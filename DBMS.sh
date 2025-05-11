@@ -317,6 +317,7 @@ function insertIntoTable {
 	for ((i=1; i<=numRows; i++)); do
 		newRow=""
 		rowValid=true
+
 		for ((j=1; j<numCols; j++)); do
 			echo -e "${BOLD}Column $j: ${colNames[$j]} (${colTypes[$j]})${CLEAR}"
 			echo -e "${BOLD}Is this column a Primary Key? ${pKeys[$j]}${CLEAR}"
@@ -454,6 +455,7 @@ function displayMenu {
 	local choice=1
 	local menuName=$1
 	local -n menu=$menuName #reference to menu array
+
 	while true; do
         clear
         tput civis
@@ -494,4 +496,5 @@ function returnToPreviousMenu {
 	read -rsn1 key
 	"$menuName"
 }
+
 main
