@@ -357,6 +357,9 @@ function insertIntoTable {
 
 			# Append to row string
 			if [[ $j -lt $(($numCols - 1)) ]]; then
+				if $j -eq 1; then
+					newRow+="\n"
+				fi
 				newRow+="$cellValue|"
 			else
 				newRow+="$cellValue"
