@@ -45,13 +45,13 @@ project-root/
 2. Make the script executable:
 
    ```bash
-   chmod +x dbms.sh
+   chmod +x DBMS.sh
    ```
 
 3. Run the script:
 
    ```bash
-   ./dbms.sh
+   ./DBMS.sh
    ```
 
 ## 🎮 Usage
