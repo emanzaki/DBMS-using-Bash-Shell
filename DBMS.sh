@@ -265,7 +265,7 @@ function createTable {
 			2) colType="bool" ;;
 			*) echo -e "${RED}Error occurred${CLEAR}" ;;
 		esac
-		if [[ $pkCount -eq 1 ]]; then
+		if [[ $pkCount -eq 1 && $colType != "bool" ]]; then
 			displayMenu pKeyMenu
 			isPK=$?
 			case $isPK in
@@ -301,9 +301,10 @@ function insertIntoTable {
 	fi
 
 	# Extract metadata
-	numCols=$(( 1 + $(head -n 1 ".$tableName" | grep -o "|" | wc -l) ))
+	IFS='|' read -r -a colNames <<< "$(head -n 1 "$tableName")"
+    numCols=${#colNames[@]}
 
-	for ((j=1; j<numCols; j++)); do
+	for ((j=1; j<=numCols; j++)); do
 		metaLine=$(sed -n "$((j + 1))p" ".$tableName")
 		colNames[$j]=$(echo "$metaLine" | cut -d '|' -f 1)
 		colTypes[$j]=$(echo "$metaLine" | cut -d '|' -f 2)
@@ -313,14 +314,14 @@ function insertIntoTable {
 
 	echo -e "Number of Rows: \c"
 	read numRows
-
+	echo "$numRows"
 	for ((i=1; i<=numRows; i++)); do
 		newRow=""
 		rowValid=true
 
-		for ((j=1; j<numCols; j++)); do
-			echo -e "${BOLD}Column $j: ${colNames[$j]} (${colTypes[$j]})${CLEAR}"
-			echo -e "${BOLD}Is this column a Primary Key? ${pKeys[$j]}${CLEAR}"
+		for ((j=1; j<=numCols; j++)); do
+			echo -e "${BOLD}Column $j: ${colNames[$j]} (${YELLOW}${colTypes[$j]})${CLEAR}"
+			echo -e "${BOLD}Is this column a Primary Key? ${YELLOW}${pKeys[$j]}${CLEAR}"
 			echo -e "Row $i, Column ${colNames[$j]}: \c"
 			read cellValue
 
@@ -361,10 +362,7 @@ function insertIntoTable {
 			fi
 
 			# Append to row string
-			if [[ $j -lt $(($numCols - 1)) ]]; then
-				if $j -eq 1; then
-					newRow+="\n"
-				fi
+			if [[ $j -lt $numCols ]]; then
 				newRow+="$cellValue|"
 			else
 				newRow+="$cellValue"
@@ -408,10 +406,10 @@ function selectAll {
 function selectSpecificColumn {
 	local tableName=$1
 	# Extract metadata
-	numCols=$(( 1 + $(head -n 1 ".$tableName" | grep -o "|" | wc -l) ))
-	colNames=
+	IFS='|' read -r -a colNames <<< "$(head -n 1 "$tableName")"
+    numCols=${#colNames[@]}
 	echo "Choose a column to select:"
-	for ((j=1; j<numCols; j++)); do
+	for ((j=1; j<=numCols; j++)); do
 		metaLine=$(sed -n "$((j + 1))p" ".$tableName")
 		colNames[$j]=$(echo "$metaLine" | cut -d '|' -f 1)
 		echo "$j) ${colNames[$j]}"
@@ -419,8 +417,8 @@ function selectSpecificColumn {
 
 	echo -e "Column Number: \c"
 	read colNum
-
-	if [[ $colNum -lt 1 || $colNum -ge $numCols ]]; then
+	echo $numCols
+	if [[ $colNum -lt 1 || $colNum -gt $numCols ]]; then
 		echo -e "${RED}Invalid column number.${CLEAR}"
 		returnToPreviousMenu tableMenu
 	fi
@@ -440,14 +438,39 @@ function deleteFromTable {
 	tableData=(
 		"---------------$tableName Table---------------"
 		)
-	
 	tableData+=($(tail -n +2 $tableName 2>>../../logs/.error.log))
+	if [[ ${#tableData[@]} -eq 1 ]]; then
+		echo -e "${RED}Table is empty.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
 	displayMenu tableData
 	rowNum=$?
-	rowNum=$((rowNum + 1)) # Adjust for header
+	rowNum=$((rowNum + 2)) # Adjust for header and 1-based index
 	sed -i "${rowNum}d" $tableName 2>>../../logs/.error.log
 
 	echo -e "${GREEN}Row deleted successfully.${CLEAR}"
+	returnToPreviousMenu tableMenu
+}
+
+function dropTable {
+	echo -e "Table Name: \c"
+	read tableName
+	if [[ ! -f $tableName ]]; then
+		echo -e "${RED}Table doesn't exist.${CLEAR}"
+		returnToPreviousMenu tableMenu
+	fi
+	while true; do
+		echo "Are you sure you want to drop $tableName Table? y/n"
+		read -in1 ans
+		case $ans in
+			[Yy]) rm $tableName 2>>../../logs/.error.log
+				  rm ".$tableName" 2>>../../logs/.error.log
+				echo -e "${GREEN}$tableName Table Deleted successfully${CLEAR}"
+				break ;;
+			[Nn]) break ;;
+			*) echo -e "${RED}Invalid input. Please enter only 'y' or 'n'.${CLEAR}" ;;
+		esac
+	done
 	returnToPreviousMenu tableMenu
 }
 
