@@ -18,7 +18,7 @@ This project is a simple **Database Management System (DBMS)** built entirely us
 ```
 project-root/
 │
-├── dbms.sh               # Main script file to run the system
+├── DBMS.sh               # Main script file to run the system
 ├── config                # Configuration folder for script
 │   └── text.sh           
 ├── databases/            # Folder where databases (directories) are stored
@@ -45,13 +45,13 @@ project-root/
 2. Make the script executable:
 
    ```bash
-   chmod +x dbms.sh
+   chmod +x DBMS.sh
    ```
 
 3. Run the script:
 
    ```bash
-   ./dbms.sh
+   ./DBMS.sh
    ```
 
 ## 🎮 Usage
