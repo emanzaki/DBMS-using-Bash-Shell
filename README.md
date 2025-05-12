@@ -8,7 +8,7 @@ This project is a simple **Database Management System (DBMS)** built entirely us
 
 * Create and delete databases
 * Create and drop tables
-* Insert, select, update, and delete records
+* Insert, select, and delete records
 * Enforce data types (e.g., string, integer)
 * Primary key constraint support
 * Command-line menu interface
@@ -60,7 +60,7 @@ The system provides a menu-driven interface:
 
 * Select/Create a database
 * Create/Drop a table
-* Insert/Select/Update/Delete rows from a table
+* Insert/Select/Delete rows from a table
 
 Example of a command-line interaction:
 
@@ -85,15 +85,10 @@ Press any key to continue
 
 ## 🧩 Implementation Notes
 
-* Tables are stored as text files with the first line as metadata (column names, data types).
-* The primary key is the first column by default.
+* Tables are stored as text files with a hidden file as metadata (column names, data types).
 * Input validation is done through basic regex and built-in Bash tools (e.g., `awk`, `sed`).
 
 
 ## 📄 License
 
 This project is open-source and available under the MIT License.
-
----
-
-Would you like me to tailor this readme to include specific features or modules from your version of the project?
